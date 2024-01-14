@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "./App.css";
 import useSprayReader from "./hooks/useSprayReader";
+import usePdfReader from "./hooks/usePdfReader";
 
 function App() {
   const [inputText, setInputText] = useState("");
@@ -27,6 +28,10 @@ function App() {
     stop();
   };
 
+  const { file, numPages, onFileChange, getTextFromPage } = usePdfReader();
+
+  getTextFromPage(1).then(text => console.log(text));
+
   return (
     <div className="container mx-auto p-4">
       <div className="mb-8">
@@ -51,6 +56,15 @@ function App() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
             ></textarea>
+                <div>
+                  <input type="file" onChange={onFileChange} accept="application/pdf" />
+                  {file && (
+                    <div>
+                      <p>Arquivo selecionado: {file.name}</p>
+                      <p>Número de páginas: {numPages}</p>
+                    </div>
+                  )}
+                </div>
           </div>
 
           <div className="form-group">
