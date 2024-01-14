@@ -1,51 +1,96 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
+import useSprayReader from "./hooks/useSprayReader";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [inputText, setInputText] = useState("");
+  const {
+    setInput,
+    wpm,
+    setWpm,
+    start,
+    stop,
+    currentWord
+  } = useSprayReader();
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
-  }
+  const handleStart = () => {
+    if (wpm) {
+      setWpm(wpm);
+    }
+    if (inputText && inputText.length > 0) {
+      setInput(inputText);
+      start();
+    }
+  };
+
+  const handleStop = () => {
+    stop();
+  };
 
   return (
-    <div className="container">
-      <h1>Welcome to Tauri!</h1>
-
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="container mx-auto p-4">
+      <div className="mb-8">
+        <div className="text-center">
+          <span >&#1092;</span>
+        </div>
+        <div className="text-center text-4xl font-mono">
+          {currentWord}
+        </div>
       </div>
 
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+      <form className="form-horizontal w-full max-w-lg mx-auto">
+        <fieldset className="space-y-4">
+          <div className="form-group">
+            <label
+              className="block text-lg font-medium text-gray-700"
+            >
+              Cole um texto aqui
+            </label>
+            <textarea
+              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+            ></textarea>
+          </div>
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
+          <div className="form-group">
+            <label
+              htmlFor="wpm"
+              className="block text-lg font-medium text-gray-700"
+            >
+              Palavras por minuto
+            </label>
+            <select
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              value={wpm}
+              onChange={(e) => setWpm(e.target.value)}
+            >
+              <option value="100">100 wpm</option>
+              <option value="200">200 wpm</option>
+              <option value="300">300 wpm</option>
+              <option value="400">400 wpm</option>
+              <option value="500">500 wpm</option>
+            </select>
+          </div>
+
+          <div className="form-group flex justify-between">
+            <button
+              type="button"
+              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+              onClick={handleStart}
+            >
+              Iniciar
+            </button>
+            <button
+              type="button"
+              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+              onClick={handleStop}
+            >
+              Parar
+            </button>
+          </div>
+        </fieldset>
       </form>
-
-      <p>{greetMsg}</p>
     </div>
   );
 }
