@@ -1,17 +1,19 @@
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import useSprayReader from "./hooks/useSprayReader";
 import usePdfReader from "./hooks/usePdfReader";
 
 function App() {
   const [inputText, setInputText] = useState("");
+  const { file, numPages, onFileChange, getTextFromPage } = usePdfReader();
   const {
     setInput,
     wpm,
     setWpm,
     start,
     stop,
-    currentWord
+    currentWord,
+    isRunning
   } = useSprayReader();
 
   const handleStart = () => {
@@ -28,9 +30,7 @@ function App() {
     stop();
   };
 
-  const { file, numPages, onFileChange, getTextFromPage } = usePdfReader();
 
-  getTextFromPage(1).then(text => console.log(text));
 
   return (
     <div className="container mx-auto p-4">

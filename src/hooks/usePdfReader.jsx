@@ -35,7 +35,7 @@ const usePdfReader = () => {
   };
 
   const getTextFromPage = async (pageNumber) => {
-    if (pageNumber > 0) {
+    if (pageNumber > 0 && pdf) {
       const page = await pdf.getPage(pageNumber);
       const textContent = await page.getTextContent();
       const text = textContent.items.map(item => item.str).join(' ');
