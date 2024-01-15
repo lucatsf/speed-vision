@@ -7,12 +7,16 @@ const useSprayReader = () => {
   const [wordIdx, setWordIdx] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [timers, setTimers] = useState([]);
+  const [stopRead, setStopRead] = useState(false);
 
   String.prototype.repeat = function( num ){
       return new Array( num + 1 ).join( this );
   }
   
   const preprocessInput = useCallback((input) => {
+    if (!input) {
+      return;
+    }
     const allWords = input.split(/\s+/);
     let tmpWords = [...allWords];
     let t = 0;
@@ -64,26 +68,29 @@ const useSprayReader = () => {
   }, []);
 
   const start = useCallback(() => {
-    setIsRunning(true);
-    const interval = setInterval(() => {
-      setWordIdx((currentWordIdx) => {
-        if (currentWordIdx >= words.length) {
-          clearInterval(interval);
-          setIsRunning(false);
-          return 0;
-        } else {
-          return currentWordIdx + 1;
-        }
-      });
-    }, 60000 / wpm);
-
-    setTimers((prevTimers) => [...prevTimers, interval]);
+    if (!stopRead) {
+      setIsRunning(true);
+      const interval = setInterval(() => {
+        setWordIdx((currentWordIdx) => {
+          if (currentWordIdx >= words.length) {
+            clearInterval(interval);
+            setIsRunning(false);
+            return 0;
+          } else {
+            return currentWordIdx + 1;
+          }
+        });
+      }, 60000 / wpm);
+  
+      setTimers((prevTimers) => [...prevTimers, interval]);
+    }
   }, [wpm, words]);
 
   const stop = useCallback(() => {
     setIsRunning(false);
     timers.forEach(clearInterval);
     setTimers([]);
+    setStopRead(true);
   }, [timers]);
 
   return {

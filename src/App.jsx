@@ -5,6 +5,7 @@ import usePdfReader from "./hooks/usePdfReader";
 
 function App() {
   const [inputText, setInputText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const { file, numPages, onFileChange, getTextFromPage } = usePdfReader();
   const {
     setInput,
@@ -16,21 +17,28 @@ function App() {
     isRunning
   } = useSprayReader();
 
-  const handleStart = () => {
+  const handleStart = async (page = 1) => {
     if (wpm) {
       setWpm(wpm);
     }
-    if (inputText && inputText.length > 0) {
-      setInput(inputText);
-      start();
-    }
+    const text = await getTextFromPage(page)
+    setInput(text);
+    start();
   };
 
   const handleStop = () => {
     stop();
   };
 
-
+  useEffect(() => {
+    if (!isRunning) {
+      console.log("A leitura parou vamos para proxima pagina");
+      if (currentPage < numPages) {
+        setCurrentPage(currentPage + 1);
+        handleStart(currentPage + 1);
+      }
+    }
+  }, [isRunning]);
 
   return (
     <div className="container mx-auto p-4">
