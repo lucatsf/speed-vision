@@ -6,7 +6,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 const usePdfReader = () => {
   const [file, setFile] = useState(null);
   const [numPages, setNumPages] = useState(null);
-  const [pdf, setPdf] = useState(null); 
+  const [pdf, setPdf] = useState(null);
 
   const onFileChange = (event) => {
     if (event.target.files[0]) {
@@ -35,7 +35,7 @@ const usePdfReader = () => {
   };
 
   const getTextFromPage = async (pageNumber) => {
-    if (pageNumber >) {
+    if (pageNumber > 0) {
       const page = await pdf.getPage(pageNumber);
       const textContent = await page.getTextContent();
       const text = textContent.items.map(item => item.str).join(' ');
@@ -44,7 +44,18 @@ const usePdfReader = () => {
 
   };
 
-  return { file, numPages, onFileChange, onDocumentLoadSuccess, getTextFromPage };
+  const getTotalLength = async (pageNumber) => {
+    if (pageNumber > 0) {
+      const page = await pdf.getPage(pageNumber);
+      const textContent = await page.getTextContent();
+      const text = textContent.items.map(item => item.str).join(' ');
+      return text.length;
+    }
+  }
+
+  return {
+    file, numPages, onFileChange, onDocumentLoadSuccess, getTextFromPage, getTotalLength
+  };
 };
 
 export default usePdfReader;
