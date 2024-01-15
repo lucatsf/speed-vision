@@ -83,6 +83,8 @@ const useSprayReader = () => {
       }, 60000 / wpm);
   
       setTimers((prevTimers) => [...prevTimers, interval]);
+    } else {
+      setStopRead(false);
     }
   }, [wpm, words]);
 
