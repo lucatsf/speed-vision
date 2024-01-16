@@ -7,7 +7,6 @@ const useSprayReader = () => {
   const [wordIdx, setWordIdx] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [timers, setTimers] = useState([]);
-  const [stopRead, setStopRead] = useState(false);
 
   String.prototype.repeat = function( num ){
       return new Array( num + 1 ).join( this );
@@ -67,6 +66,7 @@ const useSprayReader = () => {
     );
   }, []);
 
+  let stopRead = false;
   const start = useCallback(() => {
     if (!stopRead) {
       setIsRunning(true);
@@ -83,16 +83,14 @@ const useSprayReader = () => {
       }, 60000 / wpm);
   
       setTimers((prevTimers) => [...prevTimers, interval]);
-    } else {
-      setStopRead(false);
     }
   }, [wpm, words]);
 
   const stop = useCallback(() => {
-    setIsRunning(false);
     timers.forEach(clearInterval);
     setTimers([]);
-    setStopRead(true);
+    setIsRunning(false);
+    stopRead = true;
   }, [timers]);
 
   return {
