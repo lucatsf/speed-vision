@@ -21,9 +21,15 @@ function App() {
     if (wpm) {
       setWpm(wpm);
     }
-    const text = await getTextFromPage(page)
-    setInput(text);
-    start();
+    if (inputText && inputText.length > 0) {
+      setInput(inputText);
+      start();
+      return;
+    } else if (numPages && numPages > 0) {
+      const text = await getTextFromPage(page)
+      setInput(text);
+      start();
+    }
   };
 
   const handleStop = () => {
