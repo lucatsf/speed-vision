@@ -6,9 +6,6 @@ Speed Vision é um aplicativo de leitura rápida que ajuda os usuários a aument
 
 ## Características
 
-- **Leitura Rápida**: Melhore sua velocidade de leitura com nosso display de palavras focado e metódico.
-- **Interface Limpa**: Uma UI minimalista criada com TailwindCSS para uma experiência de usuário sem distrações.
-- **Desempenho Superior**: Aproveite o rápido e seguro backend desenvolvido em Rust através do Tauri.
 - **Multiplataforma**: Disponível para Windows, macOS e Linux.
 
 ## Início Rápido
