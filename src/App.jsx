@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { debounce } from 'lodash';
 import "./App.css";
 import useSprayReader from "./hooks/useSprayReader";
 import usePdfReader from "./hooks/usePdfReader";
@@ -27,9 +28,9 @@ function App() {
     }
   };
 
-  const handleStop = () => {
+  const handleStop = debounce(() => {
     stop();
-  };
+  }, 300); 
 
   useEffect(() => {
     if (!isRunning) {
