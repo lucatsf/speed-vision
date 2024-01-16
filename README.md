@@ -35,6 +35,3 @@ Para construir uma versão de produção do Speed Vision, execute:
     npm run tauri build
 ```
 Os artefatos de construção serão encontrados no diretório src-tauri/target/release.
-
-## Licença
-Speed Vision é lançado sob a [Licença MIT](https://endereço-para-a-licença-mit).
