@@ -8,6 +8,7 @@ localStorage.setItem('stopRead', false);
 
 function App() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [handlePage, setHandlePage] = useState(0);
   const { file, numPages, onFileChange, getTextFromPage } = usePdfReader();
   const {
     setInput,
@@ -24,7 +25,9 @@ function App() {
       setWpm(wpm);
     }
      if (numPages && numPages > 0) {
+      page = handlePage != 0 ? handlePage : page;
       const text = await getTextFromPage(page)
+      setHandlePage(0);
       setInput(text);
       start();
     }
@@ -32,7 +35,17 @@ function App() {
 
   const handleStop = debounce(() => {
     stop();
-  }, 300); 
+  }, 300);
+
+  const handleNextPage = () => {
+    setHandlePage(currentPage + 1)
+    setCurrentPage(currentPage + 1);
+  }
+
+  const handlePrevPage = () => {
+    setHandlePage(currentPage - 1)
+    setCurrentPage(currentPage - 1);
+  }
 
   useEffect(() => {
     if (!isRunning) {
@@ -58,19 +71,6 @@ function App() {
       <form className="form-horizontal w-full max-w-lg mx-auto">
         <fieldset className="space-y-4">
           <div className="form-group">
-
-            <div>
-              <input type="file" onChange={onFileChange} accept="application/pdf" />
-              {file && (
-                <div>
-                  <p>Arquivo selecionado: {file.name}</p>
-                  <p>Número de páginas: {numPages}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="form-group">
             <label
               htmlFor="wpm"
               className="block text-lg font-medium text-gray-700"
@@ -93,7 +93,7 @@ function App() {
           <div className="form-group flex justify-between">
             <button
               type="button"
-              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-green-800 hover:bg-green-700"
               onClick={() => {
                 localStorage.setItem('stopRead', false);
                 handleStart()
@@ -103,11 +103,39 @@ function App() {
             </button>
             <button
               type="button"
-              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+              disabled={false}
+              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700"
+              onClick={handleNextPage}
+            >
+              Proxima pagina
+            </button>
+            <button
+              type="button"
+              disabled={false}
+              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700"
+              onClick={handlePrevPage}
+            >
+              Voltar pagina
+            </button>
+            <button
+              type="button"
+              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-red-800 hover:bg-red-700"
               onClick={handleStop}
             >
               Parar
             </button>
+          </div>
+          <div className="form-group">
+            <div>
+              <input type="file" onChange={onFileChange} accept="application/pdf" />
+              {file && (
+                <div>
+                  <p>Arquivo: {file.name}</p>
+                  <p>Total de páginas: {numPages}</p>
+                  <p>Página atual: {currentPage}</p>
+                </div>
+              )}
+            </div>
           </div>
         </fieldset>
       </form>
