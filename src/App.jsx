@@ -4,7 +4,6 @@ import useSprayReader from "./hooks/useSprayReader";
 import usePdfReader from "./hooks/usePdfReader";
 
 function App() {
-  const [inputText, setInputText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const { file, numPages, onFileChange, getTextFromPage } = usePdfReader();
   const {
@@ -21,11 +20,7 @@ function App() {
     if (wpm) {
       setWpm(wpm);
     }
-    if (inputText && inputText.length > 0) {
-      setInput(inputText);
-      start();
-      return;
-    } else if (numPages && numPages > 0) {
+     if (numPages && numPages > 0) {
       const text = await getTextFromPage(page)
       setInput(text);
       start();
