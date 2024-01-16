@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { debounce } from 'lodash';
 import "./App.css";
 import useSprayReader from "./hooks/useSprayReader";
@@ -9,6 +9,7 @@ localStorage.setItem('stopRead', false);
 function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [handlePage, setHandlePage] = useState(0);
+
   const { file, numPages, onFileChange, getTextFromPage } = usePdfReader();
   const {
     setInput,
@@ -19,6 +20,12 @@ function App() {
     currentWord,
     isRunning
   } = useSprayReader();
+
+  const fileInputRef = useRef(null);
+
+  const handleFileInputClick = () => {
+    fileInputRef.current.click();
+  };
 
   const handleStart = async (page = 1) => {
     if (wpm) {
@@ -73,7 +80,7 @@ function App() {
           <div className="form-group">
             <label
               htmlFor="wpm"
-              className="block text-lg font-medium text-gray-700"
+              className="block text-lg font-medium text-gray-800"
             >
               Palavras por minuto
             </label>
@@ -105,17 +112,17 @@ function App() {
               type="button"
               disabled={false}
               className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700"
-              onClick={handleNextPage}
+              onClick={handlePrevPage}
             >
-              Proxima pagina
+              Voltar pagina
             </button>
             <button
               type="button"
               disabled={false}
               className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700"
-              onClick={handlePrevPage}
+              onClick={handleNextPage}
             >
-              Voltar pagina
+              Proxima pagina
             </button>
             <button
               type="button"
@@ -125,12 +132,25 @@ function App() {
               Parar
             </button>
           </div>
-          <div className="form-group">
+          <div className="form-group flex-row justify-between space-x-4">
             <div>
-              <input type="file" onChange={onFileChange} accept="application/pdf" />
+              <button
+                type="button"
+                className="w-full px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700"
+                onClick={handleFileInputClick}
+              >
+                Selecione um arquivo
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={onFileChange}
+                accept="application/pdf"
+              />
               {file && (
-                <div>
-                  <p>Arquivo: {file.name}</p>
+                <div className="max-w-xs pt-10 text-lg font-medium text-gray-800">
+                  <p className="truncate" title={file.name}>Arquivo: {file.name}</p>
                   <p>Total de páginas: {numPages}</p>
                   <p>Página atual: {currentPage}</p>
                 </div>

@@ -57,7 +57,7 @@ const useSprayReader = () => {
     }
 
     return (
-      <div className="text-center font-mono text-4xl">
+      <div className="text-center font-sans antialiased font-semibold text-4xl">
         {word.split('').map((char, index) => {
           let className = index === pivotIndex ? 'text-red-600' : 'text-gray-800';
           return <span key={index} className={className}>{char}</span>;
