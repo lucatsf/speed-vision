@@ -60,25 +60,16 @@ function App() {
       <form className="form-horizontal w-full max-w-lg mx-auto">
         <fieldset className="space-y-4">
           <div className="form-group">
-            <label
-              className="block text-lg font-medium text-gray-700"
-            >
-              Cole um texto aqui
-            </label>
-            <textarea
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-            ></textarea>
+
+            <div>
+              <input type="file" onChange={onFileChange} accept="application/pdf" />
+              {file && (
                 <div>
-                  <input type="file" onChange={onFileChange} accept="application/pdf" />
-                  {file && (
-                    <div>
-                      <p>Arquivo selecionado: {file.name}</p>
-                      <p>Número de páginas: {numPages}</p>
-                    </div>
-                  )}
+                  <p>Arquivo selecionado: {file.name}</p>
+                  <p>Número de páginas: {numPages}</p>
                 </div>
+              )}
+            </div>
           </div>
 
           <div className="form-group">
