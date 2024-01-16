@@ -66,9 +66,8 @@ const useSprayReader = () => {
     );
   }, []);
 
-  let stopRead = false;
   const start = useCallback(() => {
-    if (!stopRead) {
+    if (!JSON.parse(localStorage.getItem('stopRead'))) {
       setIsRunning(true);
       const interval = setInterval(() => {
         setWordIdx((currentWordIdx) => {
@@ -90,7 +89,7 @@ const useSprayReader = () => {
     timers.forEach(clearInterval);
     setTimers([]);
     setIsRunning(false);
-    stopRead = true;
+    localStorage.setItem('stopRead', true);
   }, [timers]);
 
   return {

@@ -4,6 +4,8 @@ import "./App.css";
 import useSprayReader from "./hooks/useSprayReader";
 import usePdfReader from "./hooks/usePdfReader";
 
+localStorage.setItem('stopRead', false);
+
 function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const { file, numPages, onFileChange, getTextFromPage } = usePdfReader();
@@ -92,7 +94,10 @@ function App() {
             <button
               type="button"
               className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-              onClick={handleStart}
+              onClick={() => {
+                localStorage.setItem('stopRead', false);
+                handleStart()
+              }}
             >
               Iniciar
             </button>
