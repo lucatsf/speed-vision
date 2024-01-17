@@ -1,6 +1,6 @@
 # Speed Vision
 
-![Speed Vision Icon](src-tauri/icons/SpeedVisionApp.png)
+![Speed Vision Icon](src-tauri/icons/ScreenshotOne.png)
 
 Speed Vision é um aplicativo de leitura rápida que ajuda os usuários a aumentarem sua velocidade de leitura e compreensão através de uma interface intuitiva e simplificada. Desenvolvido com React, TailwindCSS, Speed Vision é uma aplicação desktop.
 
