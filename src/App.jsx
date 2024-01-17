@@ -93,7 +93,10 @@ function App() {
               <option value="200">200 wpm</option>
               <option value="300">300 wpm</option>
               <option value="400">400 wpm</option>
+              <option value="450">450 wpm</option>
               <option value="500">500 wpm</option>
+              <option value="550">550 wpm</option>
+              <option value="600">600 wpm</option>
             </select>
           </div>
 
