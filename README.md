@@ -17,7 +17,7 @@ Para iniciar com o Speed Vision, siga os passos abaixo:
    ```bash
    git clone https://link-para-o-repositorio.com/speed-vision.git
 
-2. Instale as dependências:
+2. Instale as dependências usando o node 20:
     ```bash
     cd speed-vision
     npm install
