@@ -213,7 +213,7 @@ function App() {
   };
 
   const handleRightClick = (event) => {
-    // event.preventDefault();
+    event.preventDefault();
   };
 
   useEffect(() => {
