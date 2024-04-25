@@ -6,8 +6,8 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "Speed Vision",
-    "version": "0.0.0"
+    "productName": "speedvision",
+    "version": "1.0.0"
   },
   "tauri": {
     "allowlist": {
@@ -16,6 +16,16 @@
         "all": false,
         "open": true
       }
+    },
+    "windows": [
+      {
+        "title": "Speed Vision",
+        "width": 550,
+        "height": 400
+      }
+    ],
+    "security": {
+      "csp": null
     },
     "bundle": {
       "active": true,
@@ -28,19 +38,6 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ]
-    },
-    "security": {
-      "csp": null
-    },
-    "windows": [
-      {
-        "fullscreen": false,
-        "resizable": false,
-        "maximizable": false,
-        "title": "Speed Vision",
-        "width": 800,
-        "height": 480
-      }
-    ]
+    }
   }
 }

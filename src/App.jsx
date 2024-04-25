@@ -1,168 +1,402 @@
-import { useEffect, useRef, useState } from "react";
-import { debounce } from 'lodash';
 import "./App.css";
-import useSprayReader from "./hooks/useSprayReader";
-import usePdfReader from "./hooks/usePdfReader";
+import { useEffect, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/tauri";
+import { pdfjs } from "react-pdf";
 
-localStorage.setItem('stopRead', false);
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 function App() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [handlePage, setHandlePage] = useState(0);
+  const [indicePalavra, setIndicePalavra] = useState(0);
+  const [palavras, setPalavras] = useState(
+    "Carregue um arquivo PDF para começar a leitura".split(" ")
+  );
+  const [executando, setExecutando] = useState(false);
+  const [goNextPage, setGoNextPage] = useState(false);
+  const [loadFile, setLoadFile] = useState(null);
+  const [velocidade, setVelocidade] = useState(200);
+  const [numPages, setNumPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [file, setFile] = useState(null);
+  const [pdf, setPdf] = useState(null);
 
-  const { file, numPages, onFileChange, getTextFromPage } = usePdfReader();
-  const {
-    setInput,
-    wpm,
-    setWpm,
-    start,
-    stop,
-    currentWord,
-    isRunning
-  } = useSprayReader();
+  const intervalRef = useRef(null);
 
-  const fileInputRef = useRef(null);
-
-  const handleFileInputClick = () => {
-    fileInputRef.current.click();
-  };
-
-  const handleStart = async (page = 1) => {
-    if (wpm) {
-      setWpm(wpm);
-    }
-     if (numPages && numPages > 0) {
-      page = handlePage != 0 ? handlePage : page;
-      const text = await getTextFromPage(page)
-      setHandlePage(0);
-      setInput(text);
-      start();
+  const splitText = (text) => {
+    if (text && text.length > 0) {
+      return text.trim().split(" ");
     }
   };
 
-  const handleStop = debounce(() => {
-    stop();
-  }, 300);
+  const getCurrentPageText = async (pdfFile, pageNumber = 1) => {
+    if (pdfFile) {
+      const page = await pdfFile.getPage(pageNumber);
+      const textContent = await page.getTextContent();
+
+      if (textContent.items.length === 0) {
+        setCurrentPage(pageNumber + 1);
+        return await getCurrentPageText(pdfFile, pageNumber + 1);
+      }
+
+      let text = textContent.items.map((item) => item.str).join(" ");
+
+      if (text.trim() === "") {
+        setCurrentPage(pageNumber + 1);
+        return await getCurrentPageText(pdfFile, pageNumber + 1);
+      }
+
+      text = text.replace(/\s+/g, " ");
+
+      // Verifique se o texto não consiste apenas de espaços
+      if (text.trim().length === 0) {
+        text = "";
+      }
+
+      return text;
+    }
+  };
+
+  const loadLastReading = async (fileNname) => {
+    try {
+      if (fileNname && fileNname.length > 0) {
+        const titlebook = fileNname
+          .trim()
+          .replace(/\.[^/.]+$/, "")
+          .replace(/[^a-zA-Z0-9]/g, "");
+
+        const data = { read: `${titlebook}.txt` };
+        const result = await invoke("read_file", { data })
+          .then((response) => {
+            if (response?.length > 0) {
+              const data = JSON.parse(response);
+
+              // espera 3 segundos para carregar o arquivo
+              //setTimeout(() => {
+              //  setLoadFile(data);
+              //}, 3000);
+
+              return data;
+            }
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar arquivo:", error);
+            return false;
+          });
+
+        return result;
+      }
+      return false;
+    } catch (error) {
+      console.error("Erro ao carregar arquivo:", error);
+      return false;
+    }
+  };
+
+  const handleLoadPdf = async (event) => {
+    if (event.target.files[0]) {
+      const fileRaw = event.target.files[0];
+
+      const reader = new FileReader();
+
+      reader.onload = async (e) => {
+        const typedArray = new Uint8Array(e.target.result);
+        const loadingTask = pdfjs.getDocument(typedArray);
+        try {
+          const getPdf = await loadingTask.promise;
+          let result = false;
+
+          setPdf(getPdf);
+
+          if (fileRaw?.name) {
+            result = await loadLastReading(fileRaw.name);
+          }
+
+          if (result) {
+            setNumPages(getPdf.numPages);
+            setCurrentPage(result.currentPage);
+            const wordFirstPag = await getCurrentPageText(
+              getPdf,
+              result.currentPage
+            );
+
+            setPalavras(splitText(wordFirstPag));
+          } else {
+            setNumPages(getPdf.numPages);
+            setCurrentPage(1);
+
+            const wordFirstPag = await getCurrentPageText(getPdf, 1);
+
+            setPalavras(splitText(wordFirstPag));
+          }
+        } catch (error) {
+          console.error("Error during PDF extraction:", error);
+        }
+      };
+
+      reader.readAsArrayBuffer(fileRaw);
+      setFile(fileRaw);
+    }
+  };
+
+  const handleStartReading = () => {
+    setExecutando(true);
+  };
+
+  const handleStopReading = () => {
+    setExecutando(false);
+    if (file?.name) {
+      const titlebook = file?.name
+        .trim()
+        .replace(/\.[^/.]+$/, "")
+        .replace(/[^a-zA-Z0-9]/g, "");
+
+      const data = {
+        save: `${titlebook}.txt`,
+        title: file?.name.replace(/\.[^/.]+$/, ""),
+        currentPage,
+        indicePalavra,
+        timestamp: new Date().toISOString(),
+      };
+
+      invoke("save_file", { data }).then((response) => {
+        console.log("save_file", response);
+      });
+    }
+  };
 
   const handleNextPage = () => {
-    setHandlePage(currentPage + 1)
-    setCurrentPage(currentPage + 1);
-  }
+    if (currentPage === 0 && numPages === 0) {
+      return;
+    }
+    if (currentPage < numPages) {
+      setCurrentPage((prevPage) => prevPage + 1);
+      getCurrentPageText(pdf, currentPage + 1).then((text) => {
+        setPalavras(splitText(text));
+      });
+      setIndicePalavra(0);
+    }
+    if (currentPage === numPages) {
+      setCurrentPage(1);
+      getCurrentPageText(pdf, currentPage + 1).then((text) => {
+        setPalavras(splitText(text));
+      });
+      setIndicePalavra(0);
+    }
+  };
 
-  const handlePrevPage = () => {
-    setHandlePage(currentPage - 1)
-    setCurrentPage(currentPage - 1);
-  }
+  const handlePreviousPage = () => {
+    if (currentPage === 0 && numPages === 0) {
+      return;
+    }
+    if (currentPage >= 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
+      getCurrentPageText(pdf, currentPage - 1).then((text) => {
+        setPalavras(splitText(text));
+      });
+      setIndicePalavra(0);
+    }
+
+    if (currentPage === 1) {
+      setCurrentPage(numPages);
+      getCurrentPageText(pdf, numPages).then((text) => {
+        setPalavras(splitText(text));
+      });
+      setIndicePalavra(0);
+    }
+  };
+
+  const handleRestartReading = () => {
+    setCurrentPage(1);
+    getCurrentPageText(pdf, 1).then((text) => {
+      setPalavras(splitText(text));
+    });
+    setIndicePalavra(0);
+  };
+
+  const handleRightClick = (event) => {
+    // event.preventDefault();
+  };
 
   useEffect(() => {
-    if (!isRunning) {
-      console.log("A leitura parou vamos para proxima pagina");
-      if (currentPage < numPages) {
-        setCurrentPage(currentPage + 1);
-        handleStart(currentPage + 1);
+    if (executando) {
+      // se nao tem um pdf carregado, executa somente o texto padrão
+      if (!pdf) {
+        intervalRef.current = setInterval(() => {
+          setIndicePalavra((prevIndice) => {
+            if (prevIndice + 1 === palavras.length) {
+              return prevIndice;
+            }
+            if (prevIndice + 1 < palavras.length) {
+              return prevIndice + 1;
+            } else {
+              clearInterval(intervalRef.current); // Parar quando chegar na última palavra
+              setExecutando(false); // Desativar execução
+              return prevIndice; // Manter a última palavra na tela
+            }
+          });
+        }, velocidade);
+        return () => clearInterval(intervalRef.current);
       }
+      intervalRef.current = setInterval(() => {
+        setIndicePalavra((prevIndice) => {
+          if (prevIndice + 1 === palavras.length) {
+            setGoNextPage(true);
+            return prevIndice;
+          }
+          if (prevIndice + 1 < palavras.length) {
+            return prevIndice + 1;
+          } else {
+            clearInterval(intervalRef.current); // Parar quando chegar na última palavra
+            setExecutando(false); // Desativar execução
+            return prevIndice; // Manter a última palavra na tela
+          }
+        });
+      }, velocidade);
+    } else {
+      clearInterval(intervalRef.current);
     }
-  }, [isRunning]);
+    return () => clearInterval(intervalRef.current);
+  }, [executando]);
+
+  useEffect(() => {
+    if (goNextPage) {
+      getCurrentPageText(pdf, currentPage + 1).then((text) => {
+        setPalavras(splitText(text));
+      });
+      setCurrentPage((prevPage) => prevPage + 1);
+      setIndicePalavra(0);
+      setGoNextPage(false);
+      setExecutando(true);
+    }
+  }, [goNextPage]);
+
+  //useEffect(() => {
+  //  if (loadFile) {
+  //    setCurrentPage(loadFile.currentPage);
+  //    setIndicePalavra(loadFile.indicePalavra);
+  //    getCurrentPageText(pdf, loadFile.currentPage).then((text) => {
+  //      setPalavras(splitText(text));
+  //    });
+  //  }
+  //}, [loadFile]);
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-8">
-        <div className="text-center">
-          <span >&#1092;</span>
+    <>
+      <div
+        className="flex flex-col h-full items-center justify-center bg-zinc-900/50 border-l-white/20"
+        onContextMenu={handleRightClick}
+      >
+        <div className="text-center text-4xl text-blue-900">
+          <span>Ф</span>
         </div>
-        <div className="text-center text-4xl font-mono">
-          {currentWord}
+        <span className="text-4xl truncate max-w-lg">
+          {palavras && palavras.length > 0 && palavras[indicePalavra] ? (
+            palavras[indicePalavra]
+          ) : (
+            <span>&nbsp;</span>
+          )}
+        </span>
+
+        <div className="flex gap-x-4">
+          <button
+            className={`${
+              executando
+                ? "mt-4 p-2 text-xl text-white bg-gray-600 rounded w-20"
+                : "mt-4 p-2 text-xl text-white bg-blue-900 rounded w-20"
+            }`}
+            onClick={handlePreviousPage}
+            disabled={executando && !pdf}
+          >
+            {"<<"}
+          </button>
+          <button
+            className={`${
+              executando
+                ? "mt-4 p-2 text-xl text-white bg-gray-600 rounded w-32"
+                : "mt-4 p-2 text-xl text-white bg-blue-900 rounded w-32"
+            }`}
+            onClick={handleStartReading}
+            disabled={executando}
+          >
+            Iniciar
+          </button>
+          <select
+            className={`${
+              executando
+                ? "mt-4 p-2 text-xl bg-gray-600 text-white rounded w-22"
+                : "mt-4 p-2 text-xl bg-blue-900 text-white rounded w-22"
+            }`}
+            onChange={(e) => setVelocidade(Number(e.target.value))}
+            value={velocidade}
+            disabled={executando}
+          >
+            <option value="200">200</option>
+            <option value="150">250</option>
+            <option value="100">300</option>
+            <option value="80">350</option>
+            <option value="50">400</option>
+          </select>
+          <button
+            className="mt-4 p-2 text-xl text-white bg-red-800 rounded w-32"
+            onClick={handleStopReading}
+            disabled={!executando && !pdf}
+          >
+            Parar
+          </button>
+          <button
+            className={`${
+              executando
+                ? "mt-4 p-2 text-xl text-white bg-gray-600 rounded w-20"
+                : "mt-4 p-2 text-xl text-white bg-blue-900 rounded w-20"
+            }`}
+            onClick={handleNextPage}
+            disabled={executando}
+          >
+            {">>"}
+          </button>
         </div>
-      </div>
+        <div className="mt-4">
+          <input
+            accept="application/pdf"
+            type="file"
+            id="fileInput"
+            className="hidden"
+            onChange={handleLoadPdf}
+            disabled={executando}
+          />
+          <label
+            htmlFor="fileInput"
+            className="p-2 text-xl text-white bg-black-500 rounded cursor-pointer inline-block"
+          >
+            Carregar PDF
+          </label>
+        </div>
 
-      <form className="form-horizontal w-full max-w-lg mx-auto">
-        <fieldset className="space-y-4">
-          <div className="form-group">
-            <label
-              htmlFor="wpm"
-              className="block text-lg font-medium text-gray-800"
-            >
-              Palavras por minuto
-            </label>
-            <select
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              value={wpm}
-              onChange={(e) => setWpm(e.target.value)}
-            >
-              <option value="100">100 wpm</option>
-              <option value="200">200 wpm</option>
-              <option value="300">300 wpm</option>
-              <option value="400">400 wpm</option>
-              <option value="450">450 wpm</option>
-              <option value="500">500 wpm</option>
-              <option value="550">550 wpm</option>
-              <option value="600">600 wpm</option>
-            </select>
-          </div>
-
-          <div className="form-group flex justify-between">
-            <button
-              type="button"
-              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-green-800 hover:bg-green-700"
-              onClick={() => {
-                localStorage.setItem('stopRead', false);
-                handleStart()
-              }}
-            >
-              Iniciar
-            </button>
-            <button
-              type="button"
-              disabled={false}
-              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700"
-              onClick={handlePrevPage}
-            >
-              Voltar pagina
-            </button>
-            <button
-              type="button"
-              disabled={false}
-              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700"
-              onClick={handleNextPage}
-            >
-              Proxima pagina
-            </button>
-            <button
-              type="button"
-              className="px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-red-800 hover:bg-red-700"
-              onClick={handleStop}
-            >
-              Parar
-            </button>
-          </div>
-          <div className="form-group flex-row justify-between space-x-4">
-            <div>
-              <button
-                type="button"
-                className="w-full px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700"
-                onClick={handleFileInputClick}
-              >
-                Selecione um arquivo
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                onChange={onFileChange}
-                accept="application/pdf"
-              />
-              {file && (
-                <div className="max-w-xs pt-10 text-lg font-medium text-gray-800">
-                  <p className="truncate" title={file.name}>Arquivo: {file.name}</p>
-                  <p>Total de páginas: {numPages}</p>
-                  <p>Página atual: {currentPage}</p>
-                </div>
-              )}
+        {numPages > 0 && (
+          <>
+            <div className="flex gap-x-2">
+              <span className="">Total de páginas: {numPages}</span>
+              <span className="">Página atual: {currentPage}</span>
             </div>
-          </div>
-        </fieldset>
-      </form>
-    </div>
+
+            <div className="flex gap-x-2">
+              <span className="truncate max-w-lg">{file?.name}</span>
+            </div>
+
+            <div className="flex gap-x-2 mt-4">
+              <span className="truncate max-w-lg">
+                <button
+                  className="p-2 rounded w-32 underline"
+                  onClick={handleRestartReading}
+                  disabled={executando}
+                >
+                  Recomeçar
+                </button>
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
