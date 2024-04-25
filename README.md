@@ -1,7 +1,6 @@
 # Speed Vision
 
-![image](https://github.com/lucatsf/speed-vision/assets/18267941/f7ee08ff-9742-4830-999e-3542615f3c07)
-
+![2024-04-25-20-21-45](https://github.com/lucatsf/speed-vision/assets/18267941/5f73a9b8-1704-4ff2-9022-0a98c5e05899)
 
 Speed Vision é um aplicativo de leitura rápida que ajuda os usuários a aumentarem sua velocidade de leitura e compreensão através de uma interface intuitiva e simplificada. Desenvolvido com React, TailwindCSS, Speed Vision é uma aplicação desktop.
 
