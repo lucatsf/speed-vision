@@ -15,7 +15,7 @@ Para iniciar com o Speed Vision, siga os passos abaixo:
 
 1. Clone o repositório:
    ```bash
-   git clone https://link-para-o-repositorio.com/speed-vision.git
+   git clone git@github.com:lucatsf/speed-vision.git
 
 2. Instale as dependências usando o node 20:
     ```bash
