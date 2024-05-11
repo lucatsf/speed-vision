@@ -11,17 +11,29 @@ fn save_file(data: serde_json::Value) -> Result<String, String> {
         None => return Err("Nome do arquivo não fornecido ou inválido".to_string()),
     };
 
+    // Obter o diretório home do usuário
+    let mut path = dirs::home_dir().ok_or("Não foi possível obter o diretório home do usuário")?;
+    // Adicionar a pasta .speedvision ao caminho
+    path.push(".speedvision");
+
+    // Criar o diretório se ele não existir
+    if !path.exists() {
+        std::fs::create_dir_all(&path).map_err(|e| format!("Erro ao criar o diretório: {}", e))?;
+    }
+
+    // Adicionar o nome do arquivo ao caminho
+    path.push(filename);
+
     // Verificar se o arquivo já existe e removê-lo se existir
-    let path = std::path::Path::new(filename);
     if path.exists() {
-        match std::fs::remove_file(path) {
+        match std::fs::remove_file(&path) {
             Ok(_) => println!("Arquivo existente deletado com sucesso"),
             Err(e) => return Err(format!("Erro ao deletar o arquivo existente: {}", e)),
         }
     }
 
     // Tenta salvar os dados no novo arquivo
-    match std::fs::write(path, data.to_string()) {
+    match std::fs::write(&path, data.to_string()) {
         Ok(_) => Ok("Arquivo salvo com sucesso".to_string()),
         Err(e) => Err(format!("Erro ao salvar o arquivo: {}", e)),
     }
@@ -37,9 +49,18 @@ fn read_file(data: serde_json::Value) -> Option<String> {
             return None;
         }
     };
-    println!("Lendo arquivo: {}", filename);
+
+    // Obter o diretório home do usuário
+    let mut path = dirs::home_dir().expect("Não foi possível obter o diretório home do usuário");
+    // Adicionar a pasta .speedvision ao caminho
+    path.push(".speedvision");
+    // Adicionar o nome do arquivo ao caminho
+    path.push(filename);
+
+    println!("Lendo arquivo: {}", path.display());
+
     // Tentar ler o arquivo e retornar o conteúdo se possível, caso contrário retorna None
-    match std::fs::read_to_string(filename) {
+    match std::fs::read_to_string(&path) {
         Ok(content) => Some(content),
         Err(e) => {
             println!("Erro ao ler o arquivo: {}", e);
@@ -50,7 +71,14 @@ fn read_file(data: serde_json::Value) -> Option<String> {
 
 #[tauri::command]
 fn clear_file(filename: String) -> Result<String, String> {
-    match std::fs::remove_file(&filename) {
+    // Obter o diretório home do usuário
+    let mut path = dirs::home_dir().expect("Não foi possível obter o diretório home do usuário");
+    // Adicionar a pasta .speedvision ao caminho
+    path.push(".speedvision");
+    // Adicionar o nome do arquivo ao caminho
+    path.push(&filename);
+
+    match std::fs::remove_file(&path) {
         Ok(_) => Ok("Arquivo deletado com sucesso".to_string()),
         Err(e) => Err(format!("Erro ao deletar o arquivo: {}", e)),
     }

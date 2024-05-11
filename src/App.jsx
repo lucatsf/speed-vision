@@ -330,10 +330,10 @@ function App() {
             disabled={executando}
           >
             <option value="200">200</option>
-            <option value="150">250</option>
-            <option value="100">300</option>
-            <option value="80">350</option>
-            <option value="50">400</option>
+            <option value="170">250</option>
+            <option value="160">300</option>
+            <option value="150">350</option>
+            <option value="100">400</option>
           </select>
           <button
             className="mt-4 p-2 text-xl text-white bg-red-800 rounded w-32"
