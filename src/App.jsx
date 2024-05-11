@@ -12,7 +12,6 @@ function App() {
   );
   const [executando, setExecutando] = useState(false);
   const [goNextPage, setGoNextPage] = useState(false);
-  const [loadFile, setLoadFile] = useState(null);
   const [velocidade, setVelocidade] = useState(200);
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
@@ -68,11 +67,6 @@ function App() {
           .then((response) => {
             if (response?.length > 0) {
               const data = JSON.parse(response);
-
-              // espera 3 segundos para carregar o arquivo
-              //setTimeout(() => {
-              //  setLoadFile(data);
-              //}, 3000);
 
               return data;
             }

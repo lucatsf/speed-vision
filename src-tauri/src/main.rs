@@ -84,9 +84,31 @@ fn clear_file(filename: String) -> Result<String, String> {
     }
 }
 
+#[tauri::command]
+fn get_app_dir() -> Result<String, String> {
+    // Obter o diretório de dados do aplicativo
+    let mut path = dirs::data_dir().ok_or("Não foi possível obter o diretório de dados do aplicativo")?;
+    // Adicionar o nome do diretório do aplicativo ao caminho
+    path.push("speedvision");
+
+    // Verificar se o diretório do aplicativo existe e criar se não existir
+    if !path.exists() {
+        std::fs::create_dir_all(&path).map_err(|e| format!("Erro ao criar o diretório do aplicativo: {}", e))?;
+    }
+
+    // Retornar o caminho como uma string
+    Ok(path.to_string_lossy().to_string())
+}
+
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![save_file, read_file, clear_file])
+        .invoke_handler(tauri::generate_handler![
+            save_file,
+            read_file,
+            clear_file,
+            get_app_dir
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
