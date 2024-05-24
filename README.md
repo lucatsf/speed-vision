@@ -16,12 +16,23 @@ Para iniciar com o Speed Vision, siga os passos abaixo:
    ```bash
    git clone git@github.com:lucatsf/speed-vision.git
 
-2. Instale as dependências usando o node 20:
+2. Instale dependencias no sistema (para linux):
+```bash
+sudo apt-get install libsoup2.4-dev
+&& sudo apt-get install libatk1.0-dev
+&& sudo apt-get install libcairo2-dev
+&& sudo apt-get install libgdk-pixbuf2.0-dev
+&& sudo apt-get install libgtk-3-dev
+&& sudo apt-get install libjavascriptcoregtk-4.0-dev
+&& sudo apt-get install libwebkit2gtk-4.0-dev
+```
+
+3. Instale as dependências usando o node 20:
     ```bash
     cd speed-vision
     npm install
 
-3. Execute o aplicativo:
+4. Execute o aplicativo:
     ``` bash
     npm run tauri dev
 
